@@ -1,5 +1,3 @@
-***
-
 # Project 13: NGINX S3 Config Sync
 
 This Bash script automates NGINX configuration management by pulling the latest `nginx.conf` directly from an Amazon S3 bucket and performing a graceful, zero-downtime reload. Engineered to function as an EC2 user-data bootstrap script or an automated update hook, it eliminates the need for AMI rebuilds or manual SSH interventions when deploying routing or reverse-proxy updates. 
