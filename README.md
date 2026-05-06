@@ -1,31 +1,39 @@
-# NGINX S3 Config Sync Setup
+***
 
-A Bash script that pulls `nginx.conf` from an S3 bucket and reloads NGINX in place — no restart, zero dropped connections. Designed as a bootstrap/update hook on EC2 instances so config changes require no AMI rebuild; just update the file in S3 and trigger the script.
+# Project 13: NGINX S3 Config Sync
+
+This Bash script automates NGINX configuration management by pulling the latest `nginx.conf` directly from an Amazon S3 bucket and performing a graceful, zero-downtime reload. Engineered to function as an EC2 user-data bootstrap script or an automated update hook, it eliminates the need for AMI rebuilds or manual SSH interventions when deploying routing or reverse-proxy updates. 
+
+## Architecture
+
+![Architecture Diagram](architecture.png)
 
 ## How It Works
 
-1. Downloads the canonical `nginx.conf` from `s3://<bucket>/nginx-configs/nginx.conf` to `/etc/nginx/nginx.conf`
-2. Runs `nginx -s reload` to apply the new config without dropping active connections
+1. **Fetch:** Authenticates via the EC2 Instance Profile to download the canonical `nginx.conf` from `s3://<bucket>/nginx-configs/nginx.conf` directly to `/etc/nginx/nginx.conf`.
+2. **Apply:** Executes `nginx -s reload` to hot-swap the new configuration into memory without dropping active client TCP connections.
 
 ## Stack
 
-Bash · AWS CLI · NGINX
+Bash · AWS CLI · NGINX · Amazon S3 · AWS Systems Manager (SSM)
 
 ## Prerequisites
 
-- NGINX installed and running
-- AWS CLI configured — an instance profile with `s3:GetObject` on the target bucket is the recommended approach
-- A valid `nginx.conf` present at the configured S3 path
+- Target EC2 instance with NGINX and the AWS CLI installed.
+- An attached IAM Instance Profile with `s3:GetObject` permissions scoped to the target bucket.
+- A valid `nginx.conf` present at the configured S3 path.
 
 ## Usage
 
-Set your bucket and path in the script, then:
+**Local Execution**
+Set your target S3 bucket and path within the script, then execute:
 
 ```bash
 sudo bash nginx.sh
 ```
 
-For fleet-wide rollout via SSM Run Command:
+**Fleet-Wide Rollout (Zero-Touch)**
+To deploy a configuration change across an entire fleet of web servers simultaneously without SSH, use AWS Systems Manager (SSM) Run Command:
 
 ```bash
 aws ssm send-command \
@@ -34,13 +42,4 @@ aws ssm send-command \
   --parameters 'commands=["sudo bash /opt/nginx-s3-config-sync/nginx.sh"]'
 ```
 
-Pairs naturally with an S3 → EventBridge → SSM chain for automated config propagation.
-
-## Repository Layout
-
-```
-nginx-s3-config-sync/
-├── nginx.sh
-├── .gitignore
-└── README.md
-```
+*Note: This SSM command pairs naturally with an S3 → EventBridge → SSM pipeline for fully automated, event-driven configuration propagation whenever a new `nginx.conf` is uploaded to the bucket.*
