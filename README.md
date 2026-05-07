@@ -27,7 +27,7 @@ Bash · AWS CLI · NGINX · Amazon S3 · AWS Systems Manager (SSM)
 Set your target S3 bucket and path within the script, then execute:
 
 ```bash
-sudo bash nginx.sh
+bash nginx.sh
 ```
 
 **Fleet-Wide Rollout (Zero-Touch)**
@@ -40,4 +40,4 @@ aws ssm send-command \
   --parameters 'commands=["sudo bash /opt/nginx-s3-config-sync/nginx.sh"]'
 ```
 
-*Note: This SSM command pairs naturally with an S3 → EventBridge → SSM pipeline for fully automated, event-driven configuration propagation whenever a new `nginx.conf` is uploaded to the bucket.*
+*Note: (Optional - but worth it) - This SSM command pairs naturally with an S3 → EventBridge → SSM pipeline for fully automated, event-driven configuration propagation whenever a new `nginx.conf` is uploaded to the bucket.*
